@@ -1,6 +1,7 @@
 # Custom
 test.ipynb
 output_model/
+onnx_model/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
