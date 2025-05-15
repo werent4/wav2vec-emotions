@@ -6,6 +6,9 @@ import numpy as np
 from transformers import Wav2Vec2FeatureExtractor
 import warnings
 from tqdm import tqdm
+import random
+
+from augments import augment_audio
 
 EMOTION2ID = {
     'angry': 0,
@@ -35,6 +38,7 @@ class IEMOCAPDataset(Dataset):
             feature_extractor: Wav2Vec2FeatureExtractor,
             is_simplified: bool = False,
             max_length: int = 16000 * 5, # 5 seconds
+            use_augmentations: bool = True
         ) -> None:
 
         if is_simplified:
@@ -43,6 +47,7 @@ class IEMOCAPDataset(Dataset):
         self.dataset = dataset
         self.emotion_mapping = emotion_mapping
         self.max_length = max_length
+        self.use_augmentations = use_augmentations
 
         self.feature_extractor = feature_extractor
 
@@ -65,6 +70,9 @@ class IEMOCAPDataset(Dataset):
                 audio = item['audio']['array']
                 sample_rate = item['audio']['sampling_rate']
                 label = self._get_emotion_id(item['major_emotion'])
+
+                if self.use_augmentations and random.random() > 0.5:
+                    audio = augment_audio(audio, sample_rate)
 
                 inputs = self.feature_extractor(
                         audio, sampling_rate=self.feature_extractor.sampling_rate, max_length=self.max_length, truncation=True, padding="max_length", return_tensors="pt", type=torch.float32

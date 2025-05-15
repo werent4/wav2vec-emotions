@@ -95,7 +95,8 @@ def main(args):
         emotion_mapping=EMOTION2ID,
         feature_extractor=feature_extractor,
         is_simplified=config.get("is_simplified", False),
-        max_length=max_length
+        max_length=max_length,
+        use_augmentations=True
     )
 
     iemocap_val = IEMOCAPDataset(
@@ -103,7 +104,8 @@ def main(args):
         emotion_mapping=EMOTION2ID,
         feature_extractor=feature_extractor,
         is_simplified=config.get("is_simplified", False),
-        max_length=max_length
+        max_length=max_length,
+        use_augmentations=False
     )
 
     training_args = TrainingArguments(
