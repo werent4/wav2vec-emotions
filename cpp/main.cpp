@@ -16,7 +16,8 @@ int main(int argc, char* argv[]) {
 
     std::vector<float> audio_data = loadAudio(path, sampleRate);
     print1DVector(audio_data);
-    std::cout << sampleRate;
+    std::cout << audio_data.size() << std::endl;
+    std::cout << sampleRate << std::endl;
 
     return 0;
 }
