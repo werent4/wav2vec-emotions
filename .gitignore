@@ -2,6 +2,8 @@
 test.ipynb
 output_model/
 onnx_model/
+audio_.wav
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
