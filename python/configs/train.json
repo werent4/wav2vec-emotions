@@ -4,6 +4,8 @@
     "val_size": 0.15,
     "max_lenght_seconds": 5,
     "is_simplified": false,
+    "gamma": 2.0,
+    "alpha": 0.1, 
     "training_args": {
         "output_dir": "output_model",
         "save_strategy": "epoch",
@@ -13,7 +15,7 @@
         "gradient_accumulation_steps": 4,
         "num_train_epochs": 10,
         "lr_scheduler_type": "cosine", 
-        "weight_decay": 0.01, 
+        "weight_decay": 0.04, 
         "warmup_ratio": 0.1,
         "logging_steps": 50,
         "eval_strategy": "epoch",

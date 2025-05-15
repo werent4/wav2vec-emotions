@@ -1,12 +1,15 @@
 import torch
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
-from dataset import IEMOCAPDataset, EMOTION2ID
 from datasets import load_dataset, Dataset
-from transformers import Wav2Vec2FeatureExtractor, Wav2Vec2ForSequenceClassification, Trainer, TrainingArguments
+from transformers import Wav2Vec2FeatureExtractor, Wav2Vec2ForSequenceClassification, TrainingArguments
 import json
 import os
 import pprint
+
+from dataset import IEMOCAPDataset, EMOTION2ID
+from loss_function import FocalLoss
+from _trainer import LossTrainer
 
 def load_config(config_path):
     with open(config_path, 'r') as f:
@@ -24,6 +27,11 @@ def load_preprocessor_and_model(model_name: str, device: str = "cuda", label2id:
         label2id=label2id
     ).to(device)
     return feature_extractor, model
+
+def computeFalse_loss(model, inputs, loss_fn):
+    labels = inputs.pop("labels")
+    outputs = model(**inputs)
+    return loss_fn(outputs.logits, labels)
 
 def compute_metrics(pred):
 
@@ -96,7 +104,7 @@ def main(args):
         feature_extractor=feature_extractor,
         is_simplified=config.get("is_simplified", False),
         max_length=max_length,
-        use_augmentations=True
+        use_augmentations=False
     )
 
     iemocap_val = IEMOCAPDataset(
@@ -112,12 +120,14 @@ def main(args):
         **config["training_args"]
     )
 
-    trainer = Trainer(
+    focal_loss = FocalLoss(gamma=config.get("gamma", 2.0), alpha=config.get("alpha", 0.1))
+    trainer = LossTrainer(
         model=model,
         args=training_args,
         train_dataset=iemocap_train,
         eval_dataset=iemocap_val, 
         compute_metrics=compute_metrics,  
+        loss_fn=focal_loss
     )
     trainer.train()
 
