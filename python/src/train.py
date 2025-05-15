@@ -45,6 +45,22 @@ def compute_metrics(pred):
         'f1': f1,
     }
 
+def save_config(config, eval_results):
+    save_path = os.path.join(config["training_args"]["output_dir"], "training_config.json")
+    full_config = {
+        "model_name": config["model_name"],
+        "emotion_mapping": EMOTION2ID,
+        "max_length_seconds": config.get("max_length_seconds", 5),
+        "is_simplified": config.get("is_simplified", False),
+        "training_args": config["training_args"],
+        "eval_results": eval_results
+    }
+
+    with open(save_path, "w") as f:
+        json.dump(full_config, f, indent=4)
+
+    print(f"Configuration saved to {save_path}")
+
 def main(args):
     config = load_config(args.config)
 
@@ -106,8 +122,10 @@ def main(args):
     eval_results = trainer.evaluate()
     print(f"Evaluation results: {eval_results}")
 
-    with open(os.path.join(training_args.output_dir, "eval_results.json"), "w") as f:
-        json.dump(eval_results, f, indent=4)
+    save_config(config, eval_results)
+    
+    feature_extractor.save_pretrained(training_args.output_dir)
+    print(f"Feature extractor saved to {training_args.output_dir}")
 
 if __name__ == "__main__":
     import argparse
