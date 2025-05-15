@@ -119,13 +119,17 @@ def main(args):
     )
     trainer.train()
 
+    best_f1_path = os.path.join(training_args.output_dir, 'best_f1')
+    trainer.save_model(output_dir=best_f1_path)
+    print(f"Best model saved to {best_f1_path}")
+
     eval_results = trainer.evaluate()
     print(f"Evaluation results: {eval_results}")
 
     save_config(config, eval_results)
-    
-    feature_extractor.save_pretrained(training_args.output_dir)
-    print(f"Feature extractor saved to {training_args.output_dir}")
+
+    feature_extractor.save_pretrained(best_f1_path)
+    print(f"Feature extractor saved to {best_f1_path}")
 
 if __name__ == "__main__":
     import argparse
