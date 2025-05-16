@@ -1,8 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <preprocessor.h>
-#include <utils.h>
+
+#include "utils.h"
+#include "preprocessor.h"
 
 
 int main(int argc, char* argv[]) {
@@ -15,9 +16,12 @@ int main(int argc, char* argv[]) {
     int sampleRate;
 
     std::vector<float> audio_data = loadAudio(path, sampleRate);
-    print1DVector(audio_data);
     std::cout << audio_data.size() << std::endl;
     std::cout << sampleRate << std::endl;
+
+    FeaturesExtractor featuresextractor = FeaturesExtractor(sampleRate);
+    std::vector<float> processed_audio = featuresextractor.process(audio_data);
+    print1DVector(processed_audio);
 
     return 0;
 }

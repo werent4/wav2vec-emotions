@@ -104,7 +104,7 @@ def main(args):
         feature_extractor=feature_extractor,
         is_simplified=config.get("is_simplified", False),
         max_length=max_length,
-        use_augmentations=False
+        use_augmentations=True
     )
 
     iemocap_val = IEMOCAPDataset(

@@ -23,7 +23,7 @@ void print1DVector(std::vector<Number> data) {
     for (size_t i = 0; i < data.size(); i++) {
         std::cout << data[i];
         if (i < data.size() - 1) {
-            std::cout << " ";
+            std::cout << ", ";
         }
     }
     std::cout << "]" << std::endl;

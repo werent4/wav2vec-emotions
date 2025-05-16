@@ -4,7 +4,7 @@ output_model/
 onnx_model/
 audio_.wav
 .vscode
-my.json
+my*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

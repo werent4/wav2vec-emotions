@@ -16,7 +16,7 @@ file(GLOB SRC_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 set(SRCS ${MAIN_SRCS} ${SRC_SRCS})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_compile_options(-w)
 
