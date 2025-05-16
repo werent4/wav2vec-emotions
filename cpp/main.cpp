@@ -37,11 +37,11 @@ int main(int argc, char* argv[]) {
     int sampleRate;
 
     std::vector<float> audio_data = loadAudio(audio_path, sampleRate);
-    std::cout << audio_data.size() << std::endl;
-    std::cout << sampleRate << std::endl;
-
     FeaturesExtractor featuresextractor = FeaturesExtractor(sampleRate);
     std::vector<float> processed_audio = featuresextractor.process(audio_data);
+    print1DVector(processed_audio);
+    int audio_size = processed_audio.size();
+    std::cout << "processed_audio.size: " << audio_size << std::endl;
 
     MetaDataConfig config = MetaDataConfig(MD_SAMPLE_RATE, MD_MAX_LENGHT, FRAMEWORK, ID2LABEL);
     Model model = Model(model_path, config, Device_Type(1));
