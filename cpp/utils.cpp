@@ -31,3 +31,16 @@ std::vector<float> loadAudio(const std::string& path, int& sampleRate){
     
     return buffer;
 }
+
+std::string getModelPath(const std::string& metadataPath, Backend_Type backend_type){
+    std::filesystem::path modelPath;
+    std::filesystem::path metadata(metadataPath);
+    std::filesystem::path directory = metadata.parent_path();
+    if (backend_type == ONNXRuntime){
+        modelPath = directory / "model.onnx";
+    }
+    else {
+        throw std::runtime_error("Unsupported backend type for model path generation");
+    }
+    return modelPath.string();
+}

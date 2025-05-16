@@ -3,6 +3,9 @@
 
 #include <iostream>
 #include <vector>
+#include <filesystem>
+
+#include "inference.h"
 
 /**
  * @description: loads audio file
@@ -11,6 +14,14 @@
  * @return {vector<float>}
  */
 std::vector<float> loadAudio(const std::string& path, int& sampleRate);
+
+/**
+ * @description: Returns model path based on path to model's metadata_path and backend type 
+ * @param {string&} metadata_path	    path model's metadata
+ * @param {Backend_Type} backend_type	type of backend to run model
+ * @return {string}                     path to model in Backend_Type format
+ */
+std::string getModelPath(const std::string& metadata_path, Backend_Type backend_type);
 
 /**
  * @description: prints vector
