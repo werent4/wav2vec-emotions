@@ -2,6 +2,7 @@
 test.ipynb
 output_model/
 onnx_model/
+onnx_simple_model/
 audio_.wav
 .vscode
 my*
