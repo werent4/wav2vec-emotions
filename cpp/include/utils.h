@@ -5,7 +5,7 @@
 #include <vector>
 #include <filesystem>
 
-#include "inference.h"
+#include "types.h"
 
 /**
  * @description: loads audio file
@@ -14,6 +14,14 @@
  * @return {vector<float>}
  */
 std::vector<float> loadAudio(const std::string& path, int& sampleRate);
+
+
+/**
+ * @description: loads model configuration from metadata.json file
+ * @param {string&} path	path to metadata
+ * @return {MetaDataConfig} configuration structure
+ */
+MetaDataConfig loadMetaData(const std::string& path);
 
 /**
  * @description: Returns model path based on path to model's metadata_path and backend type 
@@ -25,7 +33,7 @@ std::string getModelPath(const std::string& metadata_path, Backend_Type backend_
 
 /**
  * @description: prints vector
- * @param {std::vector<Number>} data  vector data
+ * @param {vector<Number>} data  vector data
  * @return {*}
  */
 template <typename Number>
@@ -40,4 +48,25 @@ void print1DVector(std::vector<Number> data) {
     std::cout << "]" << std::endl;
 }
 
-#endif // UTILS_H
+/**
+ * @description: prints mapping
+ * @param {unordered_map<key, value>} map  key: value mapping
+ * @return {*}
+ */
+template <typename key, typename value>
+void printMap(const std::unordered_map<key, value>& map) {
+    std::cout << "{\n";
+    for (const auto& pair : map) {
+        std::cout << "    " << pair.first << ": \"" << pair.second << "\",\n";
+    }
+    std::cout << "}" << std::endl;
+}
+
+/**
+ * @description: prints metadata
+ * @param {MetaDataConfig} metadata  strutcure which stores model's metadata
+ * @return {*}
+ */
+void printMetaData(MetaDataConfig metadata);
+
+#endif //UTILS_H

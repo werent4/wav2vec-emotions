@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 option(WITH_ONNXRUNTIME "build _WAV2VEC_ONNXRUNTIME" ON)
 option(WITH_LIBSNDFILE "build _LIBSNDFILE_AP" ON)
-option(WITH_JSONCPP "build _JSONCPP" OFF)
+option(WITH_JSONCPP "build _JSONCPP" ON)
 option(WITH_CUDA "build with CUDA support" OFF)
 
 if(WITH_CUDA)

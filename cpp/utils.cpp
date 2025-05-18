@@ -1,4 +1,7 @@
 #include <sndfile.h>
+#include <json/json.h>
+#include <fstream>
+
 #include "utils.h"
 
 std::vector<float> loadAudio(const std::string& path, int& sampleRate){
@@ -30,6 +33,53 @@ std::vector<float> loadAudio(const std::string& path, int& sampleRate){
     }
     
     return buffer;
+}
+
+MetaDataConfig loadMetaData(const std::string& path){
+    if (!std::filesystem::exists(path)){
+        throw std::filesystem::filesystem_error(
+            "file not found", 
+            path, 
+            std::make_error_code(std::errc::no_such_file_or_directory)
+        );
+    }
+
+    Json::Value configuration;
+    std::ifstream ifs;
+    ifs.open(path);
+
+    Json::CharReaderBuilder builder;
+    builder["collectComments"] = false;
+    JSONCPP_STRING errs;
+
+    if (!parseFromStream(builder, ifs, &configuration, &errs)) {
+        std::cout << errs << std::endl;
+        throw std::runtime_error("Failed to parse JSON configuration");
+    }
+
+    int sampleRate = configuration["sample_rate"].asInt();
+    int maxLength = configuration["max_length"].asInt();
+    std::string framework = configuration["framework"].asString();
+
+    std::unordered_map<int, std::string> id2label;
+    const Json::Value& labels = configuration["id2label"];
+
+    for (Json::ValueConstIterator it = labels.begin(); it != labels.end(); ++it) {
+        int key = std::stoi(it.key().asString());
+        std::string value = (*it).asString();
+        id2label[key] = value;
+    }
+
+    return MetaDataConfig(sampleRate, maxLength, framework, id2label);
+}
+
+void printMetaData(MetaDataConfig metadata){
+    std::cout << "Framework: " << metadata.Framework << std::endl;
+    std::cout << "Sample rate: " << metadata.SampleRate << std::endl;
+    std::cout << "Max intput length (s): " << metadata.MaxLenght / metadata.SampleRate << std::endl;
+    std::cout << "Labels mapping: ";
+    printMap(metadata.Id2Label);
+
 }
 
 std::string getModelPath(const std::string& metadataPath, Backend_Type backend_type){

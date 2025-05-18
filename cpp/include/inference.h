@@ -5,21 +5,9 @@
 #include <string>
 #include <unordered_map>
 
+#include "utils.h"
 #include "backends.h"
 
-struct MetaDataConfig {
-    int SampleRate;
-    int MaxLenght;
-    std::string Framework;
-    std::unordered_map<int, std::string> Id2Label;
-
-    MetaDataConfig(int SampleRate_, int MaxLenght_, std::string Framework_, std::unordered_map<int, std::string> Id2Label_){
-        SampleRate = SampleRate_;
-        MaxLenght = MaxLenght_;
-        Framework = Framework_;
-        Id2Label = Id2Label_;
-    };
-};
 
 class Model{
     private:
@@ -39,13 +27,16 @@ class Model{
             if (StringToBackendType.find(config.Framework) != StringToBackendType.end()) {
                 backend_type = StringToBackendType[config.Framework];
             } else {
-                std::cerr << "Unknown framework type: " << config.Framework << std::endl;
-                std::cout << "Using onnx as default backend" << std::endl;
-
-                backend_type = ONNXRuntime; 
+                std::string errorMsg = "Unknown framework type: " + config.Framework;
+                std::cerr << errorMsg << std::endl;
+                throw std::runtime_error(errorMsg);
             }
 
             init_backend(backend_type);
+            
+            std::cout << "Successfully created model with following configuration:" << std::endl;
+            printMetaData(config);
+
         }
         ~Model(){
             release_backend();
