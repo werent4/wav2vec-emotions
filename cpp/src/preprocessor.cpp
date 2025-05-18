@@ -8,7 +8,7 @@ std::vector<float> FeaturesExtractor::process(const std::vector<float> m_inputs)
     m_inputs_ = pad(m_inputs_);
 
     if (do_normalize) normalize(m_inputs_);
-    // print1DVector(m_inputs_);
+
     return m_inputs_;
 }
 
@@ -37,15 +37,15 @@ void FeaturesExtractor::normalize(std::vector<float>& m_inputs){
 }
 
 float FeaturesExtractor::variance(const std::vector<float>& m_inputs, float mean) {
+    if (m_inputs.size() <= 1) {
+        return 0.0;
+    }
+
     double sum = 0.0;
 
     for (const auto& element : m_inputs) {
         double sub_mean = static_cast<double>(element) - mean;
         sum += sub_mean * sub_mean; 
-    }
-    
-    if (m_inputs.size() <= 1) {
-        return 0.0;
     }
     
     return sum / (m_inputs.size() - 1);

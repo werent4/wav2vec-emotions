@@ -49,6 +49,13 @@ void print1DVector(std::vector<Number> data) {
 }
 
 /**
+ * @description: prints metadata
+ * @param {MetaDataConfig} metadata  strutcure which stores model's metadata
+ * @return {*}
+ */
+void printMetaData(MetaDataConfig metadata);
+
+/**
  * @description: prints mapping
  * @param {unordered_map<key, value>} map  key: value mapping
  * @return {*}
@@ -61,12 +68,5 @@ void printMap(const std::unordered_map<key, value>& map) {
     }
     std::cout << "}" << std::endl;
 }
-
-/**
- * @description: prints metadata
- * @param {MetaDataConfig} metadata  strutcure which stores model's metadata
- * @return {*}
- */
-void printMetaData(MetaDataConfig metadata);
 
 #endif //UTILS_H

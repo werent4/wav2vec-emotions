@@ -24,29 +24,28 @@ class FeaturesExtractor{
             do_normalize = do_normalize_;
 
         };
-        // ~FeaturesExtractor(){};
 
-        /* @description: main extractor method.
-         * @param  {vector<float>} m_inputs   array of sound amplitudes in time domain
+        /* @description:                        main extractor method.
+         * @param  {vector<float>} m_inputs     array of sound amplitudes in time domain
          * @return {vector<float>}
          */
         std::vector<float> process(const std::vector<float> m_inputs);
 
     private:
-        /* @description: Every array in the list is normalized to have zero mean and unit variance
-         * @param  {vector<float>} m_inputs  array of sound amplitudes in time domain
+        /* @description:                        Every array in the list is normalized to have zero mean and unit variance
+         * @param  {vector<float>} m_inputs     array of sound amplitudes in time domain
          * @return {*}
          */
         void normalize(std::vector<float>& m_inputs);
 
-        /* @description: Variance 
+        /* @description:                     Variance 
          * @param  {vector<float>} m_inputs  array of sound amplitudes in time domain
          * @param  {float} mean              mean of m_inputs 
          * @return {vector<float>}
          */        
         float variance(const std::vector<float>& m_inputs, float mean);
 
-        /* @description: padding method 
+        /* @description:                      Padding method 
          * @param  {vector<float>&} m_inputs  array of sound amplitudes in time domain
          * @return {*}
          */
