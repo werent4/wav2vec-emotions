@@ -205,6 +205,6 @@ The system implements several audio augmentation techniques:
 - Add CUDA optimizations for postprocessing
 - Add bacth support
 
-## Contributing 
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
