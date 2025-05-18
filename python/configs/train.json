@@ -3,9 +3,10 @@
     "seed": 42,
     "val_size": 0.15,
     "max_lenght_seconds": 5,
-    "is_simplified": false,
+    "is_simplified": true,
     "gamma": 2.0,
-    "alpha": 0.1, 
+    "alpha": 0.2, 
+    "max_samples_per_class": 1450,
     "training_args": {
         "output_dir": "output_model",
         "save_strategy": "epoch",
