@@ -79,6 +79,7 @@ void printMetaData(MetaDataConfig metadata){
     std::cout << "Max intput length (s): " << metadata.MaxLenght / metadata.SampleRate << std::endl;
     std::cout << "Labels mapping: ";
     printMap(metadata.Id2Label);
+    std::cout << std::endl;
 
 }
 

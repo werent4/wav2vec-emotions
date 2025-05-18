@@ -14,7 +14,8 @@ void Model::init_backend(Backend_Type backend_type){
 std::string Model::predict(std::vector<float> m_inputs){
     std::vector<float> logits = backend->predict(m_inputs);
     std::vector<float> probabilities = cpuSoftmax1D(logits);
-    std::string class_name = getClass(*std::max_element(probabilities.begin(), probabilities.end()));
+    int class_id = std::distance(probabilities.begin(), std::max_element(probabilities.begin(), probabilities.end()));
+    std::string class_name = getClass(class_id);
     return class_name;
 }
 
