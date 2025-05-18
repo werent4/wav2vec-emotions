@@ -7,7 +7,7 @@ import json
 import os
 import pprint
 
-from dataset import IEMOCAPDataset, EMOTION2ID
+from dataset import IEMOCAPDataset, EMOTION2ID, SIMPLIFIED_EMOTION2ID, print_emotion_distribution
 from loss_function import FocalLoss
 from _trainer import LossTrainer
 
@@ -72,6 +72,12 @@ def save_config(config, eval_results):
 def main(args):
     config = load_config(args.config)
 
+    is_simplified = config.get("is_simplified", False)
+    if is_simplified:
+        emotion2id = SIMPLIFIED_EMOTION2ID
+    else:
+        emotion2id = EMOTION2ID
+
     if args.model_name:
         config["model_name"] = args.model_name
     if args.output_dir:
@@ -93,34 +99,37 @@ def main(args):
     feature_extractor, model = load_preprocessor_and_model(
         config["model_name"], 
         device, 
-        label2id=EMOTION2ID
+        label2id=emotion2id
     )
 
     max_length= feature_extractor.sampling_rate * config.get("max_lenght_seconds", 5)
 
     iemocap_train = IEMOCAPDataset(
         dataset=train_dataset_split,
-        emotion_mapping=EMOTION2ID,
+        emotion_mapping=emotion2id,
         feature_extractor=feature_extractor,
-        is_simplified=config.get("is_simplified", False),
+        is_simplified=is_simplified,
         max_length=max_length,
-        use_augmentations=True
+        use_augmentations=True,
+        max_samples_per_class=config.get("max_samples_per_class", 100000000)
     )
 
     iemocap_val = IEMOCAPDataset(
         dataset=val_dataset_split,
-        emotion_mapping=EMOTION2ID,
+        emotion_mapping=emotion2id,
         feature_extractor=feature_extractor,
-        is_simplified=config.get("is_simplified", False),
+        is_simplified=is_simplified,
         max_length=max_length,
-        use_augmentations=False
+        use_augmentations=False,
+        max_samples_per_class=config.get("max_samples_per_class", 100000000)
     )
-
+    print(f"Train dataset info")
+    print_emotion_distribution(iemocap_train, is_simplified)
     training_args = TrainingArguments(
         **config["training_args"]
     )
 
-    focal_loss = FocalLoss(gamma=config.get("gamma", 2.0), alpha=config.get("alpha", 0.1))
+    focal_loss = FocalLoss(gamma=config.get("gamma", 2.0), alpha=config.get("alpha", 0.1)).to(device)
     trainer = LossTrainer(
         model=model,
         args=training_args,

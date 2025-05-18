@@ -7,10 +7,15 @@ class FocalLoss(torch.nn.Module):
     def __init__(self, gamma=2.0, alpha=None):
         super().__init__()
         self.gamma = gamma
-        self.alpha = alpha
         
-        if alpha is not None and isinstance(alpha, (list, np.ndarray)):
-            self.alpha = torch.FloatTensor(alpha)
+        if alpha is not None:
+            if isinstance(alpha, (list, np.ndarray)):
+                alpha_tensor = torch.FloatTensor(alpha)
+                self.register_buffer('alpha_weights', alpha_tensor)
+            elif isinstance(alpha, torch.Tensor):
+                self.register_buffer('alpha_weights', alpha)
+            else:
+                self.alpha_scalar = alpha 
 
     def forward(self, inputs, targets):
         ce_loss = F.cross_entropy(inputs, targets, reduction='none')
@@ -21,11 +26,10 @@ class FocalLoss(torch.nn.Module):
             
         focal_loss = ((1 - pt) ** self.gamma) * ce_loss
 
-        if self.alpha is not None:
-            if isinstance(self.alpha, torch.Tensor) and len(self.alpha) > 1:
-                alpha_t = self.alpha[targets]
-                focal_loss = alpha_t * focal_loss
-            else:
-                focal_loss *= self.alpha
+        if hasattr(self, 'alpha_weights'):
+            alpha_t = self.alpha_weights[targets]
+            focal_loss = alpha_t * focal_loss
+        elif hasattr(self, 'alpha_scalar'):
+            focal_loss *= self.alpha_scalar
 
         return focal_loss.mean()
