@@ -65,11 +65,9 @@ The system classifies spoken emotions into categories including: angry, sad, neu
 ### Python Environment
 
 ```bash
-# Create and activate a virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install required packages
 pip install torch torchaudio transformers datasets librosa scikit-learn numpy
 ```
 
