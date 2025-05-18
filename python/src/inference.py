@@ -2,17 +2,18 @@ import torch
 import librosa
 import numpy as np
 from transformers import Wav2Vec2FeatureExtractor, Wav2Vec2ForSequenceClassification
-from dataset import EMOTION2ID
+from dataset import EMOTION2ID, SIMPLIFIED_EMOTION2ID
+from typing import Dict
 
 class Wav2VecEmotionClassifier:
-    def __init__(self, model_name: str, device: str = "cuda"):
+    def __init__(self, model_name: str, device: str = "cuda", emotion2id: Dict[str, int]=EMOTION2ID):
         self.device = device
         self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("facebook/wav2vec2-base")#model_name)
         self.model = Wav2Vec2ForSequenceClassification.from_pretrained(
             model_name,
-            num_labels=len(EMOTION2ID),
-            id2label={i: label for label, i in EMOTION2ID.items()},
-            label2id=EMOTION2ID
+            num_labels=len(emotion2id),
+            id2label={i: label for label, i in emotion2id.items()},
+            label2id=emotion2id
         ).to(self.device)
 
     def predict_emotion(self, audio, target_sr, duration_seconds=5):
@@ -24,6 +25,7 @@ class Wav2VecEmotionClassifier:
             max_length=target_sr * duration_seconds,
             truncation=True
         )
+
         inputs = {key: val.to(self.device) for key, val in inputs.items()}
         self.model.eval()
         with torch.no_grad():
@@ -46,8 +48,13 @@ def load_audio(file_path, target_sr=16000):
     return audio
 
 def main(args):
+    if args.simple_model:
+        emotion2id = SIMPLIFIED_EMOTION2ID
+    else:
+        emotion2id = EMOTION2ID
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    classifier = Wav2VecEmotionClassifier(model_name=args.model_name, device=device)
+    classifier = Wav2VecEmotionClassifier(model_name=args.model_name, device=device, emotion2id=emotion2id)
 
     audio = load_audio(args.audio_file_path)
     emotion, probabilities = classifier.predict_emotion(audio, args.target_sr, args.duration_seconds)
@@ -62,6 +69,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Emotion Classification using Wav2Vec2")
     parser.add_argument("--model_name", type=str, required=True, help="Model name or path")
+    parser.add_argument("--simple_model", type=bool, default=True, help="Use simplified emotion model")
     parser.add_argument("--audio_file_path", type=str, required=True, help="Path to the audio file")
     parser.add_argument("--target_sr", type=int, default=16000, help="Target sampling rate for audio")
     parser.add_argument("--duration_seconds", type=int, default=5, help="Duration in seconds for audio input")
