@@ -35,6 +35,7 @@ class FeaturesExtractor{
     private:
         /* @description:                        Every array in the list is normalized to have zero mean and unit variance
          * @param  {vector<float>} m_inputs     array of sound amplitudes in time domain
+         * @param  {float} mean                 mean value to be subtracted from each element in m_inputs
          * @return {*}
          */
         void normalize(std::vector<float>& m_inputs, float mean);

@@ -10,7 +10,7 @@
 
 int main(int argc, char* argv[]) {
     if (argc != 4){
-        std::cerr << "Usage: /path/to/file.wav /path/to/exported_model/metadata.json" << std::endl;
+        std::cerr << "Usage: /path/to/file.wav /path/to/exported_model/metadata.json, device_type(0/1)" << std::endl;
         std::wcerr << "If you don't have exported_model folder, feel free to use our convertor (python/src/export.py)";
         return 1;
     }

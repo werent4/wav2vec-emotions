@@ -62,7 +62,7 @@ std::vector<float> gpuNormalizationLauncher(std::vector<float> m_inputs, float m
 
     cudaMemcpy(d_inputs, h_inputs, 1 * m_inputs.size() * sizeof(float), cudaMemcpyHostToDevice); // copy inputs to device
 
-    gpuVariance<<<blocksPerGrid, threadsPerBlock>>>(d_inputs, d_variance_outputs, mean, blockSize, m_inputs.size());
+    gpuVariance<<<blocksPerGrid, threadsPerBlock, threadsPerBlock * sizeof(float)>>>(d_inputs, d_variance_outputs, mean, blockSize, m_inputs.size());
     cudaMemcpy(h_variance_out, d_variance_outputs, blocksPerGrid  * sizeof(float), cudaMemcpyDeviceToHost); // copy variance intermideate outputs to host
 
     float total_sum = 0;

@@ -10,7 +10,7 @@ std::vector<float> FeaturesExtractor::process(const std::vector<float> m_inputs)
 
     m_inputs_ = pad(m_inputs_);
 
-    float mean = accumulate(m_inputs.begin(), m_inputs.end(), 0.0f) / m_inputs.size();
+    float mean = accumulate(m_inputs_.begin(), m_inputs_.end(), 0.0f) / m_inputs_.size();
 #ifdef _CUDA_PREPROCESS
     cudaDeviceProp deviceProp;
     int deviceId;
@@ -32,11 +32,14 @@ std::vector<float> FeaturesExtractor::process(const std::vector<float> m_inputs)
     else if (dataSize > 1000) blockSize = 4;
     else blockSize = 2;
 
-    return gpuNormalizationLauncher(m_inputs_, mean, blockSize, threadsPerBlock);
+    if (do_normalize) {
+        return gpuNormalizationLauncher(m_inputs_, mean, blockSize, threadsPerBlock);
+    }
 #else
     if (do_normalize) normalize(m_inputs_, mean);
     return m_inputs_;
 #endif
+    return m_inputs_;
 }
 
 std::vector<float> FeaturesExtractor::pad(std::vector<float>& m_inputs){
