@@ -9,13 +9,14 @@
 #include "inference.h"
 
 int main(int argc, char* argv[]) {
-    if (argc != 3){
+    if (argc != 4){
         std::cerr << "Usage: /path/to/file.wav /path/to/exported_model/metadata.json" << std::endl;
         std::wcerr << "If you don't have exported_model folder, feel free to use our convertor (python/src/export.py)";
         return 1;
     }
     std::string audio_path = argv[1];
     std::string metadata_path = argv[2];
+    Device_Type device_type = Device_Type(atoi(argv[3]));
     int sampleRate;
 
     std::vector<float> audio_data = loadAudio(audio_path, sampleRate);
@@ -25,7 +26,7 @@ int main(int argc, char* argv[]) {
     std::vector<float> processed_audio = featuresextractor.process(audio_data);
 
 
-    Model model = Model(metadata_path, model_metadata, Device_Type(1));
+    Model model = Model(metadata_path, model_metadata, device_type);
     std::string class_name = model.predict(processed_audio);
     std::cout << "Predicted class: " <<class_name << std::endl;
 

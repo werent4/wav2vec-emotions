@@ -37,7 +37,7 @@ class FeaturesExtractor{
          * @param  {vector<float>} m_inputs     array of sound amplitudes in time domain
          * @return {*}
          */
-        void normalize(std::vector<float>& m_inputs);
+        void normalize(std::vector<float>& m_inputs, float mean);
 
         /* @description:                     Variance 
          * @param  {vector<float>} m_inputs  array of sound amplitudes in time domain

@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.10)
 option(WITH_ONNXRUNTIME "build _WAV2VEC_ONNXRUNTIME" ON)
 option(WITH_LIBSNDFILE "build _LIBSNDFILE_AP" ON)
 option(WITH_JSONCPP "build _JSONCPP" ON)
-option(WITH_CUDA "build with CUDA support" OFF)
+option(WITH_CUDA "build with CUDA support" ON)
+option(WITH_CUDA_PREPROCESS "build _WITH_CUDA_PREPROCESS" ON)
 
 if(WITH_CUDA)
     project(wav2vec-emotions LANGUAGES C CXX CUDA)
@@ -15,8 +16,17 @@ file(GLOB MAIN_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB SRC_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 set(SRCS ${MAIN_SRCS} ${SRC_SRCS})
 
+if(WITH_CUDA AND WITH_CUDA_PREPROCESS)
+    file(GLOB CUDA_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/cuda/*.cu)
+    set(SRCS ${SRCS} ${CUDA_SRCS})
+endif()
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+if(WITH_CUDA AND WITH_CUDA_PREPROCESS)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/cuda)
+endif()
 
 add_compile_options(-w)
 
@@ -45,8 +55,8 @@ endif()
 
 if(WITH_CUDA)
     add_compile_options(-D_WITH_CUDA)
-    if(WITH_CUDA_AUDIO_PROCESSING)
-        add_compile_options(-D_WITH_CUDA_AUDIO_PROCESSING)
+    if(WITH_CUDA_PREPROCESS)
+        add_compile_options(-D_CUDA_PREPROCESS)
     endif()
 endif()
 
