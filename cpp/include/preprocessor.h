@@ -16,12 +16,13 @@ class FeaturesExtractor{
         int max_length = 80000; // SamplingRate * duration (seconds)
 
     public:
-        FeaturesExtractor(int SamplingRate_, bool do_normalize_ = true ){
+        FeaturesExtractor(int SamplingRate_, bool do_normalize_ = true, int max_length_ = 80000){
             if (SamplingRate_ != SamplingRate){
                 std::cerr << "This class was developed specifically to support wav2vec models that expect audio with a sample rate of 16000" << std::endl;
             }
             
             do_normalize = do_normalize_;
+            max_length = max_length_;
 
         };
 

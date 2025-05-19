@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     std::vector<float> audio_data = loadAudio(audio_path, sampleRate);
     MetaDataConfig model_metadata = loadMetaData(metadata_path);
 
-    FeaturesExtractor featuresextractor = FeaturesExtractor(sampleRate);
+    FeaturesExtractor featuresextractor = FeaturesExtractor(sampleRate, true, model_metadata.MaxLenght);
     std::vector<float> processed_audio = featuresextractor.process(audio_data);
 
 
