@@ -33,11 +33,6 @@ std::vector<float> FeaturesExtractor::process(const std::vector<float> m_inputs)
     else blockSize = 2;
 
     return gpuNormalizationLauncher(m_inputs_, mean, blockSize, threadsPerBlock);
-    // float variance_ = gpuVarianceLauncher(m_inputs_, mean, blockSize, threadsPerBlock);
-    // float divider = std::sqrt(variance_ + eps);
-    // for (auto& element: m_inputs_){
-    //     element = (element - mean) / divider;
-    // }
 #else
     if (do_normalize) normalize(m_inputs_, mean);
     return m_inputs_;
