@@ -53,23 +53,13 @@ class Evaluaor:
         dataset = loader_fn(dataset_name)
         return dataset[:eval_subset_size]
 
-    # def collect_all_labels(self):
-    #     all_labels = set()
-    #     for row in self.dataset:
-    #         if 'all_labels' in row:
-    #             all_labels.update(row['all_labels'])
-    #         else:
-    #             warnings.warn(f"missing collumn all_labels for {row['id']} row", UserWarning)
-    #     print("Tottal unique labels: ", len(all_labels))
-    #     return list(all_labels)
-
     def load_models(self, models_names):
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else 'cpu')
         evaluation_objects = []
         for model_name in models_names:
             model = Wav2Vec2ForSequenceClassification.from_pretrained(model_name).to(self.device)
             audio_feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(
-                model_name,
+                "facebook/wav2vec2-base"#model_name,
             )
 
             evaluation_objects.append(
@@ -133,7 +123,7 @@ class Evaluaor:
         micro_precision = total_tp / (total_tp + total_fp) if (total_tp + total_fp) > 0 else 0
         micro_recall = total_tp / (total_tp + total_fn) if (total_tp + total_fn) > 0 else 0
         micro_f1 = 2 * (micro_precision * micro_recall) / (micro_precision + micro_recall) if (micro_precision + micro_recall) > 0 else 0
-        accuracy = total_tp / (total_tp + total_fp + total_tn + total_fn) if (total_tp + total_fp + total_tn + total_fn) > 0 else 0
+        accuracy = (total_tp + total_tn) / (total_tp + total_fp + total_tn + total_fn) if (total_tp + total_fp + total_tn + total_fn) > 0 else 0
 
         return {
             "precision": precision,
@@ -267,11 +257,12 @@ def eval_emotions(eval_size):
         loader_fn = load_emotions_dataset,
         models_names= [
             "/home/werent4/wav2vec-emotions/python/output_model/best_f1"
+            # "/home/werent4/wav2vec-emotions/python/checkpoint-360"
         ],
         eval_subset_size= eval_size,
 
     )
-    results = evaluator.evaluate(batch_size= 4)
+    results = evaluator.evaluate(batch_size= 2)
     print("Results for: ", DATASET_NAME)
     pprint(results)
 
