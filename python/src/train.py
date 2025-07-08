@@ -7,7 +7,13 @@ import json
 import os
 import pprint
 
-from dataset import IEMOCAPDataset, EMOTION2ID, SIMPLIFIED_EMOTION2ID, print_emotion_distribution
+from dataset import (
+    IEMOCAPDataset,
+    GLiClassEmotionAudioDataset,
+    DataCollatorForWav2Vec2Classification,
+    EMOTION2ID, SIMPLIFIED_EMOTION2ID, EMOTION2ID_GLICLASS,
+    print_emotion_distribution
+)
 from loss_function import FocalLoss
 from _trainer import LossTrainer
 
@@ -18,7 +24,7 @@ def load_config(config_path):
     pprint.pprint(config)
     return config
 
-def load_preprocessor_and_model(model_name: str, device: str = "cuda", label2id: dict = EMOTION2ID):
+def load_preprocessor_and_model(model_name: str, device: str = "cuda", label2id: dict = EMOTION2ID_GLICLASS):
     feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_name)
     model = Wav2Vec2ForSequenceClassification.from_pretrained(
         model_name,
@@ -59,7 +65,7 @@ def save_config(config, eval_results):
         "model_name": config["model_name"],
         "emotion_mapping": EMOTION2ID,
         "max_length_seconds": config.get("max_length_seconds", 5),
-        "is_simplified": config.get("is_simplified", False),
+        "mapping_type": config.get("mapping_type", False),
         "training_args": config["training_args"],
         "eval_results": eval_results
     }
@@ -72,9 +78,11 @@ def save_config(config, eval_results):
 def main(args):
     config = load_config(args.config)
 
-    is_simplified = config.get("is_simplified", False)
-    if is_simplified:
+    mapping_type = config.get("mapping_type", "gliclass")
+    if mapping_type == "simple":
         emotion2id = SIMPLIFIED_EMOTION2ID
+    elif mapping_type == "gliclass":
+        emotion2id = EMOTION2ID_GLICLASS
     else:
         emotion2id = EMOTION2ID
 
@@ -83,17 +91,6 @@ def main(args):
     if args.output_dir:
         config["training_args"]["output_dir"] = args.output_dir
 
-    dataset = load_dataset("AbstractTTS/IEMOCAP", trust_remote_code= True).shuffle(seed=42)
-    train_indices, val_indices = train_test_split(
-        range(len(dataset["train"])), 
-        test_size=config.get("val_size", 0.15), 
-        random_state=42, 
-        stratify=[item["major_emotion"] for item in dataset["train"]]
-    )
-
-    train_dataset_split = dataset["train"].select(train_indices)
-    val_dataset_split = dataset["train"].select(val_indices)
-    print(f"Train indices: {train_dataset_split}")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     feature_extractor, model = load_preprocessor_and_model(
@@ -102,40 +99,43 @@ def main(args):
         label2id=emotion2id
     )
 
-    max_length= feature_extractor.sampling_rate * config.get("max_lenght_seconds", 5)
+    max_length_s= config.get("max_lenght_seconds", 5)
 
-    iemocap_train = IEMOCAPDataset(
-        dataset=train_dataset_split,
-        emotion_mapping=emotion2id,
+    emo_train = GLiClassEmotionAudioDataset(
+        dataset_path=config["dataset_path"],
         feature_extractor=feature_extractor,
-        is_simplified=is_simplified,
-        max_length=max_length,
-        use_augmentations=True,
-        max_samples_per_class=config.get("max_samples_per_class", 100000000)
+        emotion_mapping=emotion2id,
+        sampling_rate= config['model_sampling_rate'],
+        max_length_s= max_length_s
     )
 
-    iemocap_val = IEMOCAPDataset(
-        dataset=val_dataset_split,
-        emotion_mapping=emotion2id,
+    emo_val = GLiClassEmotionAudioDataset(
+        dataset_path= "/home/werent4/wav2vec-emotions/datasets/eval_emotions.json",
         feature_extractor=feature_extractor,
-        is_simplified=is_simplified,
-        max_length=max_length,
-        use_augmentations=False,
-        max_samples_per_class=config.get("max_samples_per_class", 100000000)
+        emotion_mapping=emotion2id,
+        sampling_rate= config['model_sampling_rate'],
+        max_length_s= max_length_s
     )
-    print(f"Train dataset info")
-    print_emotion_distribution(iemocap_train, is_simplified)
+
+    data_collator = DataCollatorForWav2Vec2Classification(
+        feature_extractor=feature_extractor,
+        padding=True,
+        max_length=feature_extractor.sampling_rate * max_length_s,
+        return_tensors="pt"
+    )
+
     training_args = TrainingArguments(
         **config["training_args"]
     )
 
-    focal_loss = FocalLoss(gamma=config.get("gamma", 2.0), alpha=config.get("alpha", 0.1)).to(device)
+    focal_loss = FocalLoss(gamma=config.get("gamma", 2.0), alpha=config.get("alpha", 0.5)).to(device)
     trainer = LossTrainer(
         model=model,
         args=training_args,
-        train_dataset=iemocap_train,
-        eval_dataset=iemocap_val, 
+        train_dataset=emo_train,
+        eval_dataset=emo_val, 
         compute_metrics=compute_metrics,  
+        data_collator = data_collator,
         loss_fn=focal_loss
     )
     trainer.train()

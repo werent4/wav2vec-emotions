@@ -1,12 +1,16 @@
 import torch, torchaudio
+from torchaudio.transforms import Resample
 from torch.utils.data import Dataset
 from datasets import load_dataset, DatasetDict
 from typing import List, Dict, Any
 import numpy as np
 from transformers import Wav2Vec2FeatureExtractor
+from dataclasses import dataclass
+from typing import Dict, List, Union, Any
 import warnings
 from tqdm import tqdm
 import random
+import json
 
 from augments import augment_audio
 
@@ -30,6 +34,119 @@ SIMPLIFIED_EMOTION2ID = {
     'happy': 3,       # happy, excited, surprise -> positive 
     'unknown': 4
 }
+
+EMOTION2ID_GLICLASS = {
+    'angry': 0,
+    'sad': 1,
+    'neutral': 2,
+    'happy': 3,
+    'disgusted': 4,
+    'fearful': 5,
+    'suprised': 6,
+}
+
+class GLiClassEmotionAudioDataset(Dataset):
+    def __init__(
+            self,
+            dataset_path,
+            feature_extractor: Wav2Vec2FeatureExtractor,
+            emotion_mapping: Dict[str, int] = EMOTION2ID_GLICLASS,
+            sampling_rate: int = 16000,
+            max_length_s: int = 5, # 5 seconds
+            
+        ) -> None:
+        
+        self.dataset = self._load_dataset(dataset_path)
+        self.emotion_mapping = emotion_mapping
+        self.feature_extractor = feature_extractor
+        self.sampling_rate = sampling_rate
+        self.max_duration_samples = sampling_rate * max_length_s
+
+        self._prepare_data()
+    
+    def _load_dataset(self, dataset_path):
+        with open(dataset_path, "r", encoding= "utf-8") as f:
+            data = json.load(f)
+        return data
+
+    def _prepare_data(self):
+        new_rows = []
+        for row in self.dataset:
+            all_labels = [EMOTION2ID_GLICLASS[label.lower()] for label in row["all_labels"]] 
+            label = [EMOTION2ID_GLICLASS[label.lower()] for label in row["true_labels"]] 
+            if len(label) > 1:
+                raise ValueError("ONLY ONE LABEL")
+            new_row = {
+                "id": row["id"], 
+                "audio_path": row["audio_path"], 
+                "sample_rate": row["sample_rate"], 
+                "all_labels": all_labels, 
+                "true_labels": label[0]
+            }
+            new_rows.append(new_row)
+        self.dataset = new_rows
+
+    def prepare_audio(self, audio_array, audio_sr):
+        if isinstance(audio_array, np.ndarray):
+            audio_array = torch.from_numpy(audio_array).float()
+        elif isinstance(audio_array, torch.Tensor):
+            audio_array = audio_array.float()
+        else:
+            audio_array = torch.tensor(audio_array, dtype=torch.float32)
+
+        # if random.random() > 0.3:
+        #     audio_array = augment_audio(audio_array, audio_sr)
+
+        if audio_sr != self.sampling_rate:
+            audio_array = Resample(audio_sr, new_freq= self.sampling_rate)(audio_array)
+
+        audio_inputs = self.feature_extractor(
+            audio_array, 
+            sampling_rate=self.sampling_rate,
+            return_tensors="pt",
+            # padding="longest",
+            truncation=True, 
+            max_length=self.max_duration_samples  
+        )
+        return audio_inputs["input_values"].squeeze(0) 
+
+    def __len__(self):
+        return len(self.dataset)
+    
+    def __getitem__(self, idx):
+        item = self.dataset[idx]
+        audio_array = torch.load(item['audio_path'])
+        audio_inputs = self.prepare_audio(audio_array, item['sample_rate'])
+        return {
+            'input_values': audio_inputs,
+            'labels': item['true_labels']
+        }
+    
+@dataclass
+class DataCollatorForWav2Vec2Classification:
+    feature_extractor: Wav2Vec2FeatureExtractor
+    padding: Union[bool, str] = True
+    max_length: Union[int, None] = None
+    pad_to_multiple_of: Union[int, None] = None
+    return_tensors: str = "pt"
+
+    def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
+        input_features = [{"input_values": feature["input_values"]} for feature in features]
+        labels = [feature["labels"] for feature in features]
+        
+        batch = self.feature_extractor.pad(
+            input_features,
+            padding=self.padding,
+            max_length=self.max_length,
+            pad_to_multiple_of=self.pad_to_multiple_of,
+            return_tensors=self.return_tensors,
+        )
+        
+        batch["labels"] = torch.tensor(labels, dtype=torch.long)
+        # print(batch)
+        # import os; os._exit(-1)
+        return batch
+
 
 class IEMOCAPDataset(Dataset):
     def __init__(

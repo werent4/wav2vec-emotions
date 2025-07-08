@@ -1,12 +1,13 @@
 {
     "model_name": "facebook/wav2vec2-base",
+    "model_sampling_rate": 16000,
     "seed": 42,
     "val_size": 0.15,
     "max_lenght_seconds": 5,
-    "is_simplified": true,
+    "mapping_type": "gliclass",
     "gamma": 2.0,
-    "alpha": 0.2, 
-    "max_samples_per_class": 1450,
+    "alpha": 0.6, 
+    "dataset_path": "/home/werent4/wav2vec-emotions/datasets/train_emotions.json",
     "training_args": {
         "output_dir": "output_model",
         "save_strategy": "epoch",
@@ -22,7 +23,7 @@
         "eval_strategy": "epoch",
         "save_total_limit": 2,
         "fp16": true,
-        "dataloader_num_workers": 8,
+        "dataloader_num_workers": 1,
         "report_to": "none",
         "load_best_model_at_end": true,
         "metric_for_best_model": "f1"
